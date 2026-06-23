@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>성경 읽기 — 베들레헴 성경</title>
+  <meta name="description" content="베들레헴 성경 데이터를 활용한 성경 읽기 프로그램. 맥체인 읽기표, 병렬 역본, 읽기 체크 기능 제공."/>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ─── 헤더 ─── -->
+  <header id="header">
+    <button class="icon-btn" id="sidebar-toggle" title="사이드바">☰</button>
+    <a class="logo" href="#">
+      <div class="logo-icon">📖</div>
+      성경 읽기
+    </a>
+    <div class="header-divider"></div>
+
+    <!-- 역본 선택 (데스크탑) -->
+    <div class="version-selectors">
+      <div class="version-selector-group">
+        <span class="version-label">역본 1</span>
+        <select id="v1-select" class="version-select"></select>
+      </div>
+      <div class="version-selector-group">
+        <span class="version-label">역본 2</span>
+        <select id="v2-select" class="version-select"></select>
+        <span class="parallel-badge" id="parallel-badge" style="display:none;">병렬</span>
+      </div>
+    </div>
+
+    <div class="header-divider"></div>
+
+    <!-- 오른쪽 컨트롤 -->
+    <div class="header-controls">
+      <button class="icon-btn" id="go-today" title="오늘 본문">📅</button>
+      <div class="font-size-control">
+        <button id="font-smaller" title="글씨 줄이기">A⁻</button>
+        <span class="font-size-display" id="font-size-display">17px</span>
+        <button id="font-larger" title="글씨 키우기">A⁺</button>
+      </div>
+      <button class="icon-btn" id="theme-toggle" title="밝기 전환">☀️</button>
+      <button class="icon-btn" id="context-toggle" title="맥락 패널">🗺</button>
+    </div>
+  </header>
+
+  <!-- ─── 본문 레이아웃 ─── -->
+  <div id="layout">
+
+    <!-- 사이드바 (데스크탑) -->
+    <aside id="sidebar">
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-target="sidebar-plan">
+          <span class="tab-icon">📋</span>읽기표
+        </button>
+        <button class="sidebar-tab" data-target="sidebar-calendar">
+          <span class="tab-icon">📅</span>달력
+        </button>
+      </div>
+      <div class="sidebar-content">
+        <div class="sidebar-panel" id="sidebar-plan" style="display:block;">
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">불러오는 중...</div>
+        </div>
+        <div class="sidebar-panel" id="sidebar-calendar" style="display:none;">
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">불러오는 중...</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 메인 성경 본문 -->
+    <main id="main">
+
+      <!-- 병렬 보기 탭 (모바일) -->
+      <div class="parallel-tabs" id="parallel-tabs" style="display:none;">
+        <button class="parallel-tab active" data-col="1" id="ptab-1">역본 1</button>
+        <button class="parallel-tab" data-col="2" id="ptab-2">역본 2</button>
+      </div>
+
+      <!-- 책/장 네비게이션 -->
+      <div class="bible-nav">
+        <button class="nav-btn" id="prev-chapter" title="이전 장">‹</button>
+        <div class="book-chapter-select">
+          <select class="nav-select" id="book-select"></select>
+          <span class="nav-separator">/</span>
+          <select class="nav-select" id="chapter-select"></select>
+        </div>
+        <button class="nav-btn" id="next-chapter" title="다음 장">›</button>
+        <div class="bible-nav-right">
+          <button class="copy-chapter-btn" id="copy-chapter">📋 장 전체 복사</button>
+        </div>
+      </div>
+
+      <!-- 본문 -->
+      <div class="bible-content" id="bible-content">
+        <h1 class="chapter-title" id="chapter-title">창세기 1장</h1>
+        <div id="bible-columns" class="bible-columns single">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">성경 데이터를 불러오는 중입니다...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 맥락 패널 (데스크탑) -->
+    <aside id="context-panel">
+      <div class="context-header">
+        <div class="context-title">📍 오늘 본문의 위치</div>
+      </div>
+      <div id="context-panel-body"></div>
+    </aside>
+
+  </div><!-- /#layout -->
+</div><!-- /#app -->
+
+<!-- ─── 모바일 하단 네비게이션 바 ─── -->
+<nav id="mobile-nav">
+  <button class="mobile-nav-btn" id="mnav-plan" data-drawer="drawer-plan">
+    <span class="nav-btn-icon">📋</span>
+    <span class="nav-btn-label">읽기표</span>
+  </button>
+  <button class="mobile-nav-btn" id="mnav-versions" data-drawer="drawer-versions">
+    <span class="nav-btn-icon">🔤</span>
+    <span class="nav-btn-label">역본</span>
+  </button>
+  <button class="mobile-nav-btn active" id="mnav-read">
+    <span class="nav-btn-icon">📖</span>
+    <span class="nav-btn-label">본문</span>
+  </button>
+  <button class="mobile-nav-btn" id="mnav-context" data-drawer="drawer-context">
+    <span class="nav-btn-icon">🗺</span>
+    <span class="nav-btn-label">위치</span>
+  </button>
+  <button class="mobile-nav-btn" id="mnav-settings" data-drawer="drawer-settings">
+    <span class="nav-btn-icon">⚙️</span>
+    <span class="nav-btn-label">설정</span>
+  </button>
+</nav>
+
+<!-- 모바일 오버레이 -->
+<div class="mobile-overlay" id="mobile-overlay"></div>
+
+<!-- ─── 드로어: 읽기표 ─── -->
+<div class="mobile-drawer" id="drawer-plan">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title">📋 성경 읽기표</div>
+    <button class="drawer-close" data-close="drawer-plan">✕</button>
+  </div>
+  <div class="sidebar-tabs" style="border-top:none;">
+    <button class="sidebar-tab active" data-drawer-target="drawer-plan-content">
+      <span class="tab-icon">📋</span>읽기표
+    </button>
+    <button class="sidebar-tab" data-drawer-target="drawer-cal-content">
+      <span class="tab-icon">📅</span>달력
+    </button>
+  </div>
+  <div id="drawer-plan-content" style="display:block;">
+    <div id="sidebar-plan-mobile">
+      <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">불러오는 중...</div>
+    </div>
+  </div>
+  <div id="drawer-cal-content" style="display:none;">
+    <div id="sidebar-calendar-mobile">
+      <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">불러오는 중...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 드로어: 역본 선택 ─── -->
+<div class="mobile-drawer" id="drawer-versions">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title">🔤 역본 선택</div>
+    <button class="drawer-close" data-close="drawer-versions">✕</button>
+  </div>
+  <div class="version-drawer-selectors">
+    <div class="version-drawer-group">
+      <div class="version-drawer-label">역본 1 (필수)</div>
+      <select id="v1-select-mobile" class="version-drawer-select"></select>
+    </div>
+    <div class="version-drawer-group">
+      <div class="version-drawer-label">역본 2 (병렬 보기 · 선택)</div>
+      <select id="v2-select-mobile" class="version-drawer-select"></select>
+    </div>
+    <button class="btn btn-primary" id="apply-versions-mobile" style="width:100%;padding:12px;font-size:14px;">적용</button>
+  </div>
+</div>
+
+<!-- ─── 드로어: 오늘 본문 위치/맥락 ─── -->
+<div class="mobile-drawer" id="drawer-context">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title">📍 오늘 본문의 위치</div>
+    <button class="drawer-close" data-close="drawer-context">✕</button>
+  </div>
+  <div id="context-panel-body-mobile"></div>
+</div>
+
+<!-- ─── 드로어: 설정 ─── -->
+<div class="mobile-drawer" id="drawer-settings">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title">⚙️ 설정</div>
+    <button class="drawer-close" data-close="drawer-settings">✕</button>
+  </div>
+  <div class="settings-drawer-content">
+    <div class="settings-row">
+      <span class="settings-label">글씨 크기</span>
+      <div class="settings-control">
+        <button class="settings-btn" id="m-font-smaller">A⁻</button>
+        <span class="settings-value" id="m-font-size-display">17px</span>
+        <button class="settings-btn" id="m-font-larger">A⁺</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">화면 밝기</span>
+      <div class="settings-control">
+        <button class="btn btn-ghost" id="m-theme-toggle" style="padding:6px 14px;">🌙 다크</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">오늘 본문으로 이동</span>
+      <div class="settings-control">
+        <button class="btn btn-primary" id="m-go-today" style="padding:6px 14px;">📅 이동</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">장 전체 복사</span>
+      <div class="settings-control">
+        <button class="btn btn-ghost" id="m-copy-chapter" style="padding:6px 14px;">📋 복사</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 읽기표 선택 모달 ─── -->
+<div class="modal-overlay" id="plan-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📖 성경 읽기표 선택</div>
+      <button class="modal-close" id="plan-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="plan-grid" id="plan-grid"></div>
+      <div class="start-date-row">
+        <label class="start-date-label" for="plan-start-date">시작일:</label>
+        <input type="date" class="start-date-input" id="plan-start-date" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="plan-modal-cancel">취소</button>
+      <button class="btn btn-primary" id="plan-modal-apply">적용</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// ─── 모바일 드로어 / 하단 네비 로직 ───────────────────────
+
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+// 드로어 열기
+function openDrawer(id) {
+  document.querySelectorAll('.mobile-drawer').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  const drawer = document.getElementById(id);
+  const overlay = document.getElementById('mobile-overlay');
+  if (drawer) {
+    drawer.classList.add('open');
+    // 드로어 열릴 때 내용 갱신
+    if (id === 'drawer-plan') syncMobilePlan();
+    if (id === 'drawer-context') syncMobileContext();
+  }
+  if (overlay) overlay.classList.add('show');
+}
+
+// 드로어 닫기
+function closeAllDrawers() {
+  document.querySelectorAll('.mobile-drawer').forEach(d => d.classList.remove('open'));
+  const overlay = document.getElementById('mobile-overlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
+// 사이드바 플랜 내용을 모바일 드로어에 동기화
+function syncMobilePlan() {
+  const src = document.getElementById('sidebar-plan');
+  const dst = document.getElementById('sidebar-plan-mobile');
+  if (src && dst) dst.innerHTML = src.innerHTML;
+  const srcCal = document.getElementById('sidebar-calendar');
+  const dstCal = document.getElementById('sidebar-calendar-mobile');
+  if (srcCal && dstCal) dstCal.innerHTML = srcCal.innerHTML;
+
+  // 이벤트 다시 연결
+  document.querySelectorAll('#drawer-plan .passage-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.passage-check')) return;
+      const bookId = parseInt(el.dataset.book);
+      const chapter = parseInt(el.dataset.ch);
+      closeAllDrawers();
+      navigateTo(bookId, chapter);
+    });
+  });
+  document.querySelectorAll('#drawer-plan .passage-check').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parent = el.closest('.passage-item');
+      toggleChapterRead(parseInt(parent.dataset.book), parseInt(parent.dataset.ch), parent.dataset.date);
+      syncMobilePlan();
+      renderSidebarPlan();
+      renderCalendar();
+    });
+  });
+  document.querySelector('#drawer-plan #open-plan-modal')?.addEventListener('click', () => {
+    closeAllDrawers();
+    openPlanModal();
+  });
+}
+
+// 맥락 패널 내용을 모바일 드로어에 동기화
+function syncMobileContext() {
+  const src = document.getElementById('context-panel-body');
+  const dst = document.getElementById('context-panel-body-mobile');
+  if (src && dst) dst.innerHTML = src.innerHTML;
+}
+
+// 역본 선택 드로어 동기화
+function syncVersionDrawer(versions) {
+  const makeOptions = (includeNone) => {
+    let html = includeNone ? '<option value="">— 없음 (단일 보기)</option>' : '';
+    const ko = versions.filter(v => v.lang === 'ko');
+    const en = versions.filter(v => v.lang === 'en');
+    html += '<optgroup label="한국어">';
+    for (const v of ko) html += `<option value="${v.id}">${v.name}</option>`;
+    html += '</optgroup><optgroup label="English">';
+    for (const v of en) html += `<option value="${v.id}">${v.name} (${v.nameEn})</option>`;
+    html += '</optgroup>';
+    return html;
+  };
+  const m1 = document.getElementById('v1-select-mobile');
+  const m2 = document.getElementById('v2-select-mobile');
+  if (m1) { m1.innerHTML = makeOptions(false); m1.value = state.version1; }
+  if (m2) { m2.innerHTML = makeOptions(true); m2.value = state.version2 || ''; }
+}
+
+// 드로어 탭 전환
+document.querySelectorAll('[data-drawer-target]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const drawer = tab.closest('.mobile-drawer');
+    drawer.querySelectorAll('[data-drawer-target]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const targetId = tab.dataset.drawerTarget;
+    drawer.querySelectorAll('[id^="drawer-"]').forEach(p => {
+      if (p.id === targetId) p.style.display = 'block';
+      else if (p.id.includes('-content')) p.style.display = 'none';
+    });
+  });
+});
+
+// 하단 네비 버튼
+document.querySelectorAll('.mobile-nav-btn[data-drawer]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const drawerId = btn.dataset.drawer;
+    const isOpen = document.getElementById(drawerId)?.classList.contains('open');
+    if (isOpen) {
+      closeAllDrawers();
+      document.getElementById('mnav-read')?.classList.add('active');
+    } else {
+      openDrawer(drawerId);
+      document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  });
+});
+
+// 본문 버튼 (드로어 없음 - 그냥 본문으로)
+document.getElementById('mnav-read')?.addEventListener('click', () => {
+  closeAllDrawers();
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mnav-read').classList.add('active');
+});
+
+// 오버레이 클릭으로 닫기
+document.getElementById('mobile-overlay')?.addEventListener('click', () => {
+  closeAllDrawers();
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mnav-read')?.classList.add('active');
+});
+
+// 드로어 닫기 버튼
+document.querySelectorAll('.drawer-close').forEach(btn => {
+  btn.addEventListener('click', () => {
+    closeAllDrawers();
+    document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mnav-read')?.classList.add('active');
+  });
+});
+
+// 역본 적용 (모바일)
+document.getElementById('apply-versions-mobile')?.addEventListener('click', async () => {
+  const m1 = document.getElementById('v1-select-mobile');
+  const m2 = document.getElementById('v2-select-mobile');
+  if (m1) {
+    state.version1 = m1.value;
+    document.getElementById('v1-select').value = m1.value;
+  }
+  if (m2) {
+    state.version2 = m2.value || null;
+    document.getElementById('v2-select').value = m2.value || '';
+  }
+  saveState();
+  closeAllDrawers();
+  document.getElementById('mnav-read')?.classList.add('active');
+  await renderBibleText();
+  // 병렬 탭 업데이트
+  updateParallelTabs();
+});
+
+// 병렬 탭 업데이트
+function updateParallelTabs() {
+  const tabs = document.getElementById('parallel-tabs');
+  if (!tabs) return;
+  if (state.version2 && isMobile()) {
+    tabs.style.display = 'flex';
+    const t1 = document.getElementById('ptab-1');
+    const t2 = document.getElementById('ptab-2');
+    const v1name = bibleCache[state.version1]?.name || '역본 1';
+    const v2name = bibleCache[state.version2]?.name || '역본 2';
+    if (t1) t1.textContent = v1name;
+    if (t2) t2.textContent = v2name;
+  } else {
+    tabs.style.display = 'none';
+  }
+}
+
+// 병렬 탭 클릭 (모바일: 두 컬럼 중 하나만 표시)
+document.querySelectorAll('.parallel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.parallel-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const col = tab.dataset.col;
+    document.getElementById('col-1')?.style.setProperty('display', col === '1' ? '' : 'none');
+    document.getElementById('col-2')?.style.setProperty('display', col === '2' ? '' : 'none');
+  });
+});
+
+// 모바일 설정 버튼
+document.getElementById('m-font-smaller')?.addEventListener('click', () => {
+  document.getElementById('font-smaller')?.click();
+  document.getElementById('m-font-size-display').textContent =
+    document.getElementById('font-size-display').textContent;
+});
+document.getElementById('m-font-larger')?.addEventListener('click', () => {
+  document.getElementById('font-larger')?.click();
+  document.getElementById('m-font-size-display').textContent =
+    document.getElementById('font-size-display').textContent;
+});
+document.getElementById('m-theme-toggle')?.addEventListener('click', () => {
+  document.getElementById('theme-toggle')?.click();
+  const btn = document.getElementById('m-theme-toggle');
+  if (btn) btn.textContent = state.theme === 'dark' ? '🌙 다크' : '☀️ 라이트';
+});
+document.getElementById('m-go-today')?.addEventListener('click', () => {
+  document.getElementById('go-today')?.click();
+  closeAllDrawers();
+});
+document.getElementById('m-copy-chapter')?.addEventListener('click', () => {
+  copyChapter();
+  closeAllDrawers();
+});
+
+// 스와이프로 장 이동 (모바일)
+let touchStartX = 0;
+let touchStartY = 0;
+document.getElementById('bible-content')?.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+  touchStartY = e.changedTouches[0].clientY;
+}, { passive: true });
+
+document.getElementById('bible-content')?.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+    if (dx < 0) nextChapter(); // 왼쪽 스와이프 → 다음 장
+    else prevChapter();        // 오른쪽 스와이프 → 이전 장
+  }
+}, { passive: true });
+
+// 역본 드로어 초기화를 위해 index.json 로드 후 호출
+const origPopulate = typeof populateVersionSelects === 'function' ? populateVersionSelects : null;
+if (origPopulate) {
+  fetch('data/bible/index.json').then(r => r.json()).then(versions => {
+    syncVersionDrawer(versions);
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>

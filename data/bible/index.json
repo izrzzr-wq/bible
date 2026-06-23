@@ -1,0 +1,152 @@
+[
+  {
+    "id": "kornkrv",
+    "name": "개역개정",
+    "nameEn": "Korean Revised Version",
+    "lang": "ko"
+  },
+  {
+    "id": "Korhrv",
+    "name": "개역한글",
+    "nameEn": "Korean Old Revised Version",
+    "lang": "ko"
+  },
+  {
+    "id": "kortkv",
+    "name": "표준새번역",
+    "nameEn": "Korean Standard Translation",
+    "lang": "ko"
+  },
+  {
+    "id": "koreasy",
+    "name": "쉬운성경",
+    "nameEn": "Easy Korean Bible",
+    "lang": "ko"
+  },
+  {
+    "id": "kordob",
+    "name": "현대인의성경",
+    "nameEn": "Korean Modern Bible",
+    "lang": "ko"
+  },
+  {
+    "id": "korcath",
+    "name": "공동번역",
+    "nameEn": "Korean Common Translation",
+    "lang": "ko"
+  },
+  {
+    "id": "korklb",
+    "name": "생명의말씀",
+    "nameEn": "Korean Living Bible",
+    "lang": "ko"
+  },
+  {
+    "id": "korkcb",
+    "name": "공동번역개정",
+    "nameEn": "Korean Common Revised",
+    "lang": "ko"
+  },
+  {
+    "id": "kornrsv",
+    "name": "NRSV 한국어",
+    "nameEn": "Korean NRSV",
+    "lang": "ko"
+  },
+  {
+    "id": "korHChV",
+    "name": "현대어성경",
+    "nameEn": "Korean Contemporary Bible",
+    "lang": "ko"
+  },
+  {
+    "id": "korHKJV",
+    "name": "KJV 한국어",
+    "nameEn": "Korean KJV",
+    "lang": "ko"
+  },
+  {
+    "id": "korKTV",
+    "name": "한국천주교성경",
+    "nameEn": "Korean Catholic Bible",
+    "lang": "ko"
+  },
+  {
+    "id": "kornkcb",
+    "name": "새번역공동번역",
+    "nameEn": "Korean NKCB",
+    "lang": "ko"
+  },
+  {
+    "id": "engESV",
+    "name": "ESV",
+    "nameEn": "English Standard Version",
+    "lang": "en"
+  },
+  {
+    "id": "engNIV",
+    "name": "NIV",
+    "nameEn": "New International Version",
+    "lang": "en"
+  },
+  {
+    "id": "ENGKJV",
+    "name": "KJV",
+    "nameEn": "King James Version",
+    "lang": "en"
+  },
+  {
+    "id": "Engnkjv",
+    "name": "NKJV",
+    "nameEn": "New King James Version",
+    "lang": "en"
+  },
+  {
+    "id": "engNASB",
+    "name": "NASB",
+    "nameEn": "New American Standard Bible",
+    "lang": "en"
+  },
+  {
+    "id": "Engnrsv",
+    "name": "NRSV",
+    "nameEn": "New Revised Standard Version",
+    "lang": "en"
+  },
+  {
+    "id": "engNLT",
+    "name": "NLT",
+    "nameEn": "New Living Translation",
+    "lang": "en"
+  },
+  {
+    "id": "engHCSB",
+    "name": "HCSB",
+    "nameEn": "Holman Christian Standard",
+    "lang": "en"
+  },
+  {
+    "id": "engMSG",
+    "name": "MSG",
+    "nameEn": "The Message",
+    "lang": "en"
+  },
+  {
+    "id": "engGNT",
+    "name": "GNT",
+    "nameEn": "Good News Translation",
+    "lang": "en"
+  },
+  {
+    "id": "engTNIV",
+    "name": "TNIV",
+    "nameEn": "Today's NIV",
+    "lang": "en"
+  },
+  {
+    "id": "engISV",
+    "name": "ISV",
+    "nameEn": "International Standard Version",
+    "lang": "en"
+  }
+]
