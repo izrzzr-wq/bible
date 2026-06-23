@@ -1159,6 +1159,10 @@ body {
   }
 
   /* 메인 레이아웃: 모바일에서는 강제 높이를 해제하고 기본 전체 페이지 세로 스크롤로 처리 */
+  html {
+    height: auto !important;
+    overflow: visible !important;
+  }
   body {
     overflow-y: auto !important;
     height: auto !important;
@@ -1205,6 +1209,10 @@ body {
     overflow-y: visible !important;
     padding: 16px 14px 140px; /* 하단 네비 높이 확보 */
     -webkit-overflow-scrolling: auto;
+    /* 사파리(WebKit) 터치/휠 이벤트 씹힘 버그 해결용 하드웨어 가속 강제 설정 */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform;
   }
   .chapter-title { font-size: 18px; margin-bottom: 16px; }
 
