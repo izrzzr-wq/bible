@@ -1100,8 +1100,13 @@ body {
   backdrop-filter: blur(2px);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
-.mobile-overlay.show { opacity: 1; }
+.mobile-overlay.show { 
+  display: block; 
+  opacity: 1; 
+  pointer-events: auto; 
+}
 
 /* 병렬 보기 탭 (모바일) */
 .parallel-tabs {
@@ -1240,8 +1245,8 @@ body {
   .nav-btn-label { font-size: 10px; font-weight: 500; }
 
   /* 드로어: 모바일에서 표시 */
-  .mobile-drawer { display: block; }
-  .mobile-overlay { display: block; }
+  .mobile-drawer.open { display: block; }
+  .mobile-overlay.show { display: block; }
 
   /* 오늘의 본문 카드 — 모바일 최적화 */
   .today-card { padding: 12px; }
