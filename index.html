@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 <div class="bg-orbs">
@@ -267,7 +267,81 @@
   </div>
 </div>
 
-<script src="app.js?v=2"></script>
+<!-- ─── 카드뉴스 제작 모달 ─── -->
+<div class="modal-overlay" id="card-modal">
+  <div class="modal card-modal-container">
+    <div class="modal-header">
+      <div class="modal-title">🎨 구절 카드뉴스 만들기</div>
+      <button class="modal-close" id="card-modal-close">✕</button>
+    </div>
+    <div class="modal-body card-modal-body">
+      <!-- 미리보기 영역 -->
+      <div class="card-preview-area">
+        <div class="card-preview-wrapper ratio-1-1" id="card-preview-container">
+          <div class="card-capture-target" id="card-capture-target">
+            <div class="card-capture-bg" id="card-capture-bg"></div>
+            <div class="card-capture-overlay"></div>
+            <div class="card-capture-content">
+              <span class="card-icon-decor" id="card-icon-decor">✝</span>
+              <p class="card-text-verse" id="card-text-verse">태초에 하나님이 천지를 창조하시니라.</p>
+              <p class="card-text-ref" id="card-text-ref">창세기 1:1</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 컨트롤 영역 -->
+      <div class="card-control-area">
+        <div class="control-group">
+          <label class="control-label">크기 비율</label>
+          <div class="control-buttons">
+            <button class="control-btn active" id="btn-ratio-1-1">1:1 피드</button>
+            <button class="control-btn" id="btn-ratio-9-16">9:16 스토리</button>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="control-label">정렬</label>
+          <div class="control-buttons">
+            <button class="control-btn" id="btn-align-left">좌측</button>
+            <button class="control-btn active" id="btn-align-center">중앙</button>
+            <button class="control-btn" id="btn-align-right">우측</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">글자 크기</label>
+          <div class="control-slider-container">
+            <input type="range" id="slider-card-font-size" min="14" max="32" value="20" />
+            <span class="slider-val" id="card-font-size-val">20px</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">장식 아이콘</label>
+          <div class="control-buttons">
+            <button class="control-btn active" id="btn-decor-cross">십자가</button>
+            <button class="control-btn" id="btn-decor-quote">따옴표</button>
+            <button class="control-btn" id="btn-decor-none">없음</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">배경 스타일</label>
+          <div class="bg-picker-grid" id="bg-picker-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="card-modal-cancel">취소</button>
+      <button class="btn btn-primary" id="card-share-btn">📤 공유하기</button>
+      <button class="btn btn-primary" id="card-download-btn" style="background:#10B981;border-color:#10B981;">💾 이미지 저장</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="app.js?v=3"></script>
 <script>
 // ─── 모바일 드로어 / 하단 네비 로직 ───────────────────────
 

@@ -710,15 +710,20 @@ function showVerseActions(x, y, vnum) {
     actions.innerHTML = `
       <button class="verse-action-btn" id="act-copy">📋 복사</button>
       <button class="verse-action-btn" id="act-highlight">✨ 하이라이트</button>
+      <button class="verse-action-btn" id="act-card">🎨 카드뉴스</button>
       <button class="verse-action-btn" id="act-share">🔗 공유</button>`;
     document.body.appendChild(actions);
     actions.querySelector('#act-copy').addEventListener('click', () => copyVerse(vnum));
     actions.querySelector('#act-highlight').addEventListener('click', () => toggleHighlight(vnum));
+    actions.querySelector('#act-card').addEventListener('click', () => {
+      hideVerseActions();
+      openCardModal(vnum);
+    });
     actions.querySelector('#act-share').addEventListener('click', () => shareVerse(vnum));
   }
 
   // 위치 조정
-  const w = 260, margin = 10;
+  const w = 320, margin = 10;
   let left = x - w / 2;
   let top = y - 50;
   if (left < margin) left = margin;
@@ -1311,7 +1316,304 @@ function bindEvents() {
 
   // 초기 탭 설정
   document.getElementById('sidebar-plan')?.closest('.sidebar-panel')?.style?.setProperty('display', 'block');
+  
+  // 카드 메이커 초기 설정
+  setupCardMaker();
 }
 
 // DOM 로드 후 시작
 document.addEventListener('DOMContentLoaded', init);
+
+// ─── 성경 구절 카드뉴스 제작 프리셋 및 이벤트 핸들러 ────────────────
+const CARD_BG_PRESETS = [
+  // 1. 단색/그라디언트 테마
+  { type: 'gradient', name: 'Twilight', value: 'linear-gradient(135deg, #1f1f3a 0%, #0c001f 100%)' },
+  { type: 'gradient', name: 'Sunset Glow', value: 'linear-gradient(135deg, #FF512F 0%, #DD2476 100%)' },
+  { type: 'gradient', name: 'Ocean Breeze', value: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)' },
+  { type: 'gradient', name: 'Forest Mist', value: 'linear-gradient(135deg, #134E5E 0%, #71B280 100%)' },
+  
+  // 2. 윈도우 / 맥 애플 공식 테마 비주얼 느낌의 이미지 테마 (Unsplash 고화질 CDN 링크)
+  { type: 'image', name: 'Mica Light', value: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=1080&auto=format&fit=crop&q=80' },
+  { type: 'image', name: 'Mica Dark', value: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&auto=format&fit=crop&q=80' },
+  { type: 'image', name: 'Mountain Lake', value: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=80' },
+  { type: 'image', name: 'Deep Forest', value: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1080&auto=format&fit=crop&q=80' },
+  { type: 'image', name: 'Silent Desert', value: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1080&auto=format&fit=crop&q=80' },
+  { type: 'image', name: 'Cosmic Sky', value: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=1080&auto=format&fit=crop&q=80' }
+];
+
+let cardState = {
+  text: '',
+  ref: '',
+  ratio: '1-1',
+  align: 'center',
+  fontSize: 20,
+  decor: 'cross',
+  bgIndex: 0
+};
+
+function setupCardMaker() {
+  // 배경 픽커 렌더링
+  const picker = document.getElementById('bg-picker-grid');
+  if (picker) {
+    picker.innerHTML = CARD_BG_PRESETS.map((preset, idx) => {
+      let style = '';
+      if (preset.type === 'gradient') {
+        style = `background: ${preset.value}`;
+      } else {
+        style = `background-image: url('${preset.value.replace('w=1080', 'w=150')}');`; // 썸네일은 작은 크기로 로딩 속도 최적화
+      }
+      return `<div class="bg-thumb${idx === cardState.bgIndex ? ' active' : ''}" data-idx="${idx}" style="${style}" title="${preset.name}"></div>`;
+    }).join('');
+    
+    // 배경 선택 클릭 이벤트
+    picker.querySelectorAll('.bg-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        picker.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        cardState.bgIndex = parseInt(thumb.dataset.idx);
+        applyCardBg();
+      });
+    });
+  }
+
+  // 모달 제어 바인딩
+  document.getElementById('card-modal-close')?.addEventListener('click', closeCardModal);
+  document.getElementById('card-modal-cancel')?.addEventListener('click', closeCardModal);
+
+  // 1:1 비율 버튼
+  document.getElementById('btn-ratio-1-1')?.addEventListener('click', () => {
+    document.getElementById('btn-ratio-1-1').classList.add('active');
+    document.getElementById('btn-ratio-9-16').classList.remove('active');
+    cardState.ratio = '1-1';
+    updateCardRatio();
+  });
+
+  // 9:16 비율 버튼
+  document.getElementById('btn-ratio-9-16')?.addEventListener('click', () => {
+    document.getElementById('btn-ratio-9-16').classList.add('active');
+    document.getElementById('btn-ratio-1-1').classList.remove('active');
+    cardState.ratio = '9-16';
+    updateCardRatio();
+  });
+
+  // 정렬 버튼
+  document.getElementById('btn-align-left')?.addEventListener('click', () => {
+    setCardAlignment('left');
+  });
+  document.getElementById('btn-align-center')?.addEventListener('click', () => {
+    setCardAlignment('center');
+  });
+  document.getElementById('btn-align-right')?.addEventListener('click', () => {
+    setCardAlignment('right');
+  });
+
+  // 글자 크기 슬라이더
+  const fontSlider = document.getElementById('slider-card-font-size');
+  fontSlider?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value);
+    cardState.fontSize = val;
+    document.getElementById('card-font-size-val').textContent = val + 'px';
+    const verseText = document.getElementById('card-text-verse');
+    if (verseText) verseText.style.fontSize = val + 'px';
+  });
+
+  // 장식 아이콘 버튼
+  document.getElementById('btn-decor-cross')?.addEventListener('click', () => {
+    setCardDecor('cross');
+  });
+  document.getElementById('btn-decor-quote')?.addEventListener('click', () => {
+    setCardDecor('quote');
+  });
+  document.getElementById('btn-decor-none')?.addEventListener('click', () => {
+    setCardDecor('none');
+  });
+
+  // 저장 및 공유 버튼
+  document.getElementById('card-download-btn')?.addEventListener('click', downloadCardImage);
+  document.getElementById('card-share-btn')?.addEventListener('click', shareCardImage);
+}
+
+function updateCardRatio() {
+  const container = document.getElementById('card-preview-container');
+  if (container) {
+    if (cardState.ratio === '1-1') {
+      container.className = 'card-preview-wrapper ratio-1-1';
+    } else {
+      container.className = 'card-preview-wrapper ratio-9-16';
+    }
+  }
+}
+
+function setCardAlignment(align) {
+  const btnLeft = document.getElementById('btn-align-left');
+  const btnCenter = document.getElementById('btn-align-center');
+  const btnRight = document.getElementById('btn-align-right');
+  btnLeft?.classList.toggle('active', align === 'left');
+  btnCenter?.classList.toggle('active', align === 'center');
+  btnRight?.classList.toggle('active', align === 'right');
+  
+  cardState.align = align;
+  const verseText = document.getElementById('card-text-verse');
+  if (verseText) verseText.style.textAlign = align;
+}
+
+function setCardDecor(decor) {
+  const btnCross = document.getElementById('btn-decor-cross');
+  const btnQuote = document.getElementById('btn-decor-quote');
+  const btnNone = document.getElementById('btn-decor-none');
+  btnCross?.classList.toggle('active', decor === 'cross');
+  btnQuote?.classList.toggle('active', decor === 'quote');
+  btnNone?.classList.toggle('active', decor === 'none');
+
+  cardState.decor = decor;
+  const decorEl = document.getElementById('card-icon-decor');
+  if (decorEl) {
+    if (decor === 'cross') {
+      decorEl.style.display = 'block';
+      decorEl.textContent = '✝';
+    } else if (decor === 'quote') {
+      decorEl.style.display = 'block';
+      decorEl.textContent = '“';
+    } else {
+      decorEl.style.display = 'none';
+    }
+  }
+}
+
+function applyCardBg() {
+  const bgPreset = CARD_BG_PRESETS[cardState.bgIndex];
+  const bgEl = document.getElementById('card-capture-bg');
+  if (bgEl) {
+    if (bgPreset.type === 'gradient') {
+      bgEl.style.background = bgPreset.value;
+      bgEl.style.backgroundImage = 'none';
+    } else {
+      bgEl.style.background = 'none';
+      bgEl.style.backgroundImage = `url('${bgPreset.value}')`;
+    }
+  }
+}
+
+function openCardModal(vnum) {
+  const book = BOOKS.find(b => b.id === state.currentBook);
+  const data1 = bibleCache[state.version1];
+  const verses = getChapterVerses(data1, state.currentBook, state.currentChapter);
+  const text = verses[vnum] || '';
+  let refText = `${book.name} ${state.currentChapter}:${vnum}`;
+  
+  // 병렬 성경이 선택되어 있으면 출처에도 버전 표시
+  const v1meta = TRANSLATIONS.find(t => t.id === state.version1);
+  refText += ` (${v1meta.name})`;
+
+  cardState.text = text;
+  cardState.ref = refText;
+
+  // 모달 데이터 반영
+  const textVerse = document.getElementById('card-text-verse');
+  const textRef = document.getElementById('card-text-ref');
+  if (textVerse) textVerse.textContent = text;
+  if (textRef) textRef.textContent = refText;
+
+  // 기본 상태 동기화
+  setCardAlignment('center');
+  setCardDecor('cross');
+  applyCardBg();
+  
+  // 글자 크기 슬라이더 리셋
+  const fontSlider = document.getElementById('slider-card-font-size');
+  if (fontSlider) {
+    fontSlider.value = 20;
+    cardState.fontSize = 20;
+    document.getElementById('card-font-size-val').textContent = '20px';
+    if (textVerse) textVerse.style.fontSize = '20px';
+  }
+
+  // 모달 띄우기
+  document.getElementById('card-modal')?.classList.add('open');
+}
+
+function closeCardModal() {
+  document.getElementById('card-modal')?.classList.remove('open');
+}
+
+// ─── 이미지 컴파일 및 공유/다운로드 핵심 구현 ────────────────
+async function generateCardCanvas() {
+  const target = document.getElementById('card-capture-target');
+  if (!target) return null;
+  
+  // html2canvas 옵션: CORS 이미지 허용, 선명도 향상을 위해 scale 2로 설정
+  return html2canvas(target, {
+    useCORS: true,
+    scale: 2,
+    allowTaint: false,
+    logging: false,
+    backgroundColor: null
+  });
+}
+
+async function downloadCardImage() {
+  showToast('이미지를 생성하는 중...', 'info');
+  try {
+    const canvas = await generateCardCanvas();
+    if (!canvas) throw new Error('Canvas 생성 실패');
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
+    link.download = filename;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('이미지가 성공적으로 저장되었습니다!', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('이미지 저장 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+async function shareCardImage() {
+  showToast('공유용 이미지를 준비 중...', 'info');
+  try {
+    const canvas = await generateCardCanvas();
+    if (!canvas) throw new Error('Canvas 생성 실패');
+    
+    // canvas를 blob으로 변환
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast('이미지 생성에 실패했습니다.', 'error');
+        return;
+      }
+      
+      const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+      
+      // navigator.share가 이미지 파일 전송을 지원하는지 체크
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: '성경 말씀 카드',
+            text: cardState.text + ' - ' + cardState.ref
+          });
+          showToast('공유가 성공적으로 완료되었습니다!', 'success');
+        } catch (shareErr) {
+          // 사용자가 공유창을 닫은 경우 등
+          if (shareErr.name !== 'AbortError') {
+            console.error(shareErr);
+            showToast('공유 도중 오류가 발생했습니다.', 'error');
+          }
+        }
+      } else {
+        // 데스크톱 등 Web Share API 미지원 브라우저 대응
+        showToast('이 기기에서는 직접 공유를 지원하지 않아 이미지를 자동 다운로드합니다. 저장된 이미지를 인스타에 업로드해 주세요!', 'info');
+        setTimeout(() => {
+          downloadCardImage();
+        }, 1500);
+      }
+    }, 'image/png');
+  } catch (err) {
+    console.error(err);
+    showToast('이미지 처리 중 오류가 발생했습니다.', 'error');
+  }
+}
