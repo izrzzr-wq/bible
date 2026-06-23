@@ -107,8 +107,8 @@ html { scroll-behavior: smooth; }
 .bg-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.15;
+  filter: blur(120px);
+  opacity: 0.35;
   transition: all 1s ease;
 }
 
@@ -138,7 +138,7 @@ html { scroll-behavior: smooth; }
 }
 
 [data-theme="light"] .bg-orb {
-  opacity: 0.08;
+  opacity: 0.22;
 }
 
 body {
@@ -1158,36 +1158,53 @@ body {
     display: none !important;
   }
 
-  /* 메인 레이아웃: 전체 너비 */
+  /* 메인 레이아웃: 모바일에서는 강제 높이를 해제하고 기본 전체 페이지 세로 스크롤로 처리 */
+  body {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+  #app {
+    height: auto !important;
+    overflow: visible !important;
+  }
   #layout { 
     flex-direction: column; 
-    height: calc(100vh - var(--header-h) - 64px);
-    height: calc(100dvh - var(--header-h) - 64px);
+    height: auto !important;
     min-height: 0;
+    overflow: visible !important;
   }
   #main { 
     width: 100%; 
-    height: 100%;
+    height: auto !important;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    display: block;
+    overflow: visible !important;
   }
  
-  /* 성경 네비게이션 바 */
-  .bible-nav { padding: 8px 12px; gap: 6px; }
+  /* 성경 네비게이션 바: 헤더 바로 아래에 끈끈하게 고정 */
+  .bible-nav { 
+    padding: 8px 12px; 
+    gap: 6px; 
+    position: sticky;
+    top: var(--header-h);
+    z-index: 10;
+    background: var(--bg-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--border);
+  }
   .nav-btn { width: 36px; height: 36px; font-size: 16px; }
   .nav-select { font-size: 13px; padding: 5px 6px; }
   .copy-chapter-btn { display: none; } /* 모바일에선 숨김 */
  
   /* 성경 본문 */
   .bible-content {
-    flex: 1;
-    height: 100%;
+    flex: none;
+    height: auto !important;
     min-height: 0;
-    overflow-y: auto;
-    padding: 16px 14px 120px; /* 하단 네비 높이 확보 */
-    -webkit-overflow-scrolling: touch;
+    overflow-y: visible !important;
+    padding: 16px 14px 140px; /* 하단 네비 높이 확보 */
+    -webkit-overflow-scrolling: auto;
   }
   .chapter-title { font-size: 18px; margin-bottom: 16px; }
 
