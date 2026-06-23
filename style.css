@@ -1451,7 +1451,17 @@ body {
   box-shadow: var(--shadow-lg);
   background: #1e1e2e;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: aspect-ratio 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.card-preview-wrapper:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.card-preview-wrapper:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .card-preview-wrapper.ratio-1-1 {

@@ -721,13 +721,31 @@ function showVerseActions(x, y, vnum) {
     <button class="verse-action-btn" id="act-card">🎨 카드뉴스</button>
     <button class="verse-action-btn" id="act-share">🔗 공유</button>`;
   document.body.appendChild(actions);
-  actions.querySelector('#act-copy').addEventListener('click', () => copyVerse(vnum));
-  actions.querySelector('#act-highlight').addEventListener('click', () => toggleHighlight(vnum));
-  actions.querySelector('#act-card').addEventListener('click', () => {
+  
+  const copyBtn = actions.querySelector('#act-copy');
+  const highlightBtn = actions.querySelector('#act-highlight');
+  const cardBtn = actions.querySelector('#act-card');
+  const shareBtn = actions.querySelector('#act-share');
+
+  // 모바일 터치(touchend)와 데스크톱 클릭에 모두 즉각 대응하고 클릭 딜레이로 인한 버블링을 방어하는 헬퍼
+  const bindAction = (btn, callback) => {
+    if (!btn) return;
+    const handler = (e) => {
+      e.stopPropagation();
+      e.preventDefault(); // 모바일 300ms 가짜 click 이벤트를 막아 전역 닫기 리스너 오작동 방지
+      callback();
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('touchend', handler, { passive: false });
+  };
+
+  bindAction(copyBtn, () => copyVerse(vnum));
+  bindAction(highlightBtn, () => toggleHighlight(vnum));
+  bindAction(cardBtn, () => {
     hideVerseActions();
     openCardModal(vnum);
   });
-  actions.querySelector('#act-share').addEventListener('click', () => shareVerse(vnum));
+  bindAction(shareBtn, () => shareVerse(vnum));
 
   // 위치 조정
   const w = 320, margin = 10;
@@ -1369,26 +1387,43 @@ function setupCardMaker() {
       } else {
         style = `background-image: url('${preset.value.replace('w=1080', 'w=150')}');`; // 썸네일은 작은 크기로 로딩 속도 최적화
       }
-      return `<div class="bg-thumb${idx === cardState.bgIndex ? ' active' : ''}" data-idx="${idx}" style="${style}" title="${preset.name}"></div>`;
+      return `<button type="button" class="bg-thumb${idx === cardState.bgIndex ? ' active' : ''}" data-idx="${idx}" style="${style}" title="${preset.name}"></button>`;
     }).join('');
     
     // 배경 선택 클릭 이벤트
     picker.querySelectorAll('.bg-thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
+      const selectBg = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         picker.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
         cardState.bgIndex = parseInt(thumb.dataset.idx);
         applyCardBg();
-      });
+      };
+      thumb.addEventListener('click', selectBg);
+      thumb.addEventListener('touchend', selectBg, { passive: false });
     });
   }
 
+  // 모바일 터치(touchend)와 데스크톱 클릭에 모두 대응하는 버튼 바인딩 헬퍼
+  const bindCardBtn = (id, callback) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const handler = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      callback();
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('touchend', handler, { passive: false });
+  };
+
   // 모달 제어 바인딩
-  document.getElementById('card-modal-close')?.addEventListener('click', closeCardModal);
-  document.getElementById('card-modal-cancel')?.addEventListener('click', closeCardModal);
+  bindCardBtn('card-modal-close', closeCardModal);
+  bindCardBtn('card-modal-cancel', closeCardModal);
 
   // 1:1 비율 버튼
-  document.getElementById('btn-ratio-1-1')?.addEventListener('click', () => {
+  bindCardBtn('btn-ratio-1-1', () => {
     document.getElementById('btn-ratio-1-1').classList.add('active');
     document.getElementById('btn-ratio-9-16').classList.remove('active');
     cardState.ratio = '1-1';
@@ -1396,7 +1431,7 @@ function setupCardMaker() {
   });
 
   // 9:16 비율 버튼
-  document.getElementById('btn-ratio-9-16')?.addEventListener('click', () => {
+  bindCardBtn('btn-ratio-9-16', () => {
     document.getElementById('btn-ratio-9-16').classList.add('active');
     document.getElementById('btn-ratio-1-1').classList.remove('active');
     cardState.ratio = '9-16';
@@ -1404,15 +1439,9 @@ function setupCardMaker() {
   });
 
   // 정렬 버튼
-  document.getElementById('btn-align-left')?.addEventListener('click', () => {
-    setCardAlignment('left');
-  });
-  document.getElementById('btn-align-center')?.addEventListener('click', () => {
-    setCardAlignment('center');
-  });
-  document.getElementById('btn-align-right')?.addEventListener('click', () => {
-    setCardAlignment('right');
-  });
+  bindCardBtn('btn-align-left', () => setCardAlignment('left'));
+  bindCardBtn('btn-align-center', () => setCardAlignment('center'));
+  bindCardBtn('btn-align-right', () => setCardAlignment('right'));
 
   // 글자 크기 슬라이더
   const fontSlider = document.getElementById('slider-card-font-size');
@@ -1425,19 +1454,25 @@ function setupCardMaker() {
   });
 
   // 장식 아이콘 버튼
-  document.getElementById('btn-decor-cross')?.addEventListener('click', () => {
-    setCardDecor('cross');
-  });
-  document.getElementById('btn-decor-quote')?.addEventListener('click', () => {
-    setCardDecor('quote');
-  });
-  document.getElementById('btn-decor-none')?.addEventListener('click', () => {
-    setCardDecor('none');
-  });
+  bindCardBtn('btn-decor-cross', () => setCardDecor('cross'));
+  bindCardBtn('btn-decor-quote', () => setCardDecor('quote'));
+  bindCardBtn('btn-decor-none', () => setCardDecor('none'));
 
   // 저장 및 공유 버튼
-  document.getElementById('card-download-btn')?.addEventListener('click', downloadCardImage);
-  document.getElementById('card-share-btn')?.addEventListener('click', shareCardImage);
+  bindCardBtn('card-download-btn', downloadCardImage);
+  bindCardBtn('card-share-btn', shareCardImage);
+
+  // 카드 미리보기 자체를 터치해도 즉시 공유 창이 뜨도록 바인딩
+  const previewContainer = document.getElementById('card-preview-container');
+  if (previewContainer) {
+    const previewHandler = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      shareCardImage();
+    };
+    previewContainer.addEventListener('click', previewHandler);
+    previewContainer.addEventListener('touchend', previewHandler, { passive: false });
+  }
 }
 
 function updateCardRatio() {
@@ -1585,40 +1620,39 @@ async function shareCardImage() {
     const canvas = await generateCardCanvas();
     if (!canvas) throw new Error('Canvas 생성 실패');
     
-    // canvas를 blob으로 변환
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        showToast('이미지 생성에 실패했습니다.', 'error');
-        return;
-      }
-      
-      const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
-      const file = new File([blob], filename, { type: 'image/png' });
-      
-      // navigator.share가 이미지 파일 전송을 지원하는지 체크
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: '성경 말씀 카드',
-            text: cardState.text + ' - ' + cardState.ref
-          });
-          showToast('공유가 성공적으로 완료되었습니다!', 'success');
-        } catch (shareErr) {
-          // 사용자가 공유창을 닫은 경우 등
-          if (shareErr.name !== 'AbortError') {
-            console.error(shareErr);
-            showToast('공유 도중 오류가 발생했습니다.', 'error');
-          }
+    // canvas를 blob으로 변환 (Promise/await 패턴으로 동기 흐름 보존하여 iOS Safari의 제스처 제한 우회)
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) {
+      showToast('이미지 생성에 실패했습니다.', 'error');
+      return;
+    }
+    
+    const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
+    const file = new File([blob], filename, { type: 'image/png' });
+    
+    // navigator.share가 이미지 파일 전송을 지원하는지 체크
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: '성경 말씀 카드',
+          text: cardState.text + ' - ' + cardState.ref
+        });
+        showToast('공유가 성공적으로 완료되었습니다!', 'success');
+      } catch (shareErr) {
+        // 사용자가 공유창을 닫은 경우 등
+        if (shareErr.name !== 'AbortError') {
+          console.error(shareErr);
+          showToast('공유 도중 오류가 발생했습니다.', 'error');
         }
-      } else {
-        // 데스크톱 등 Web Share API 미지원 브라우저 대응
-        showToast('이 기기에서는 직접 공유를 지원하지 않아 이미지를 자동 다운로드합니다. 저장된 이미지를 인스타에 업로드해 주세요!', 'info');
-        setTimeout(() => {
-          downloadCardImage();
-        }, 1500);
       }
-    }, 'image/png');
+    } else {
+      // 데스크톱 등 Web Share API 미지원 브라우저 대응
+      showToast('이 기기에서는 직접 공유를 지원하지 않아 이미지를 자동 다운로드합니다. 저장된 이미지를 인스타에 업로드해 주세요!', 'info');
+      setTimeout(() => {
+        downloadCardImage();
+      }, 1500);
+    }
   } catch (err) {
     console.error(err);
     showToast('이미지 처리 중 오류가 발생했습니다.', 'error');
