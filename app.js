@@ -692,7 +692,13 @@ function onVerseClick(e, el) {
   e.stopPropagation();
   const vn = parseInt(el.dataset.v);
 
-  // 이전 선택 해제
+  // 이미 선택되어 있는 것을 다시 누르면 선택 해제 후 닫기
+  if (el.classList.contains('selected')) {
+    hideVerseActions();
+    return;
+  }
+
+  // 이전 선택 해제 후 새로 선택
   document.querySelectorAll('.verse.selected').forEach(v => v.classList.remove('selected'));
   el.classList.add('selected');
   selectedVerse = vn;
@@ -702,25 +708,26 @@ function onVerseClick(e, el) {
 }
 
 function showVerseActions(x, y, vnum) {
+  // 이미 남아있던 액션 바가 있으면 강제 제거 후 새로 렌더링 (캐시/버튼 누락 방지)
   let actions = document.getElementById('verse-actions');
-  if (!actions) {
-    actions = document.createElement('div');
-    actions.id = 'verse-actions';
-    actions.className = 'verse-actions';
-    actions.innerHTML = `
-      <button class="verse-action-btn" id="act-copy">📋 복사</button>
-      <button class="verse-action-btn" id="act-highlight">✨ 하이라이트</button>
-      <button class="verse-action-btn" id="act-card">🎨 카드뉴스</button>
-      <button class="verse-action-btn" id="act-share">🔗 공유</button>`;
-    document.body.appendChild(actions);
-    actions.querySelector('#act-copy').addEventListener('click', () => copyVerse(vnum));
-    actions.querySelector('#act-highlight').addEventListener('click', () => toggleHighlight(vnum));
-    actions.querySelector('#act-card').addEventListener('click', () => {
-      hideVerseActions();
-      openCardModal(vnum);
-    });
-    actions.querySelector('#act-share').addEventListener('click', () => shareVerse(vnum));
-  }
+  if (actions) actions.remove();
+
+  actions = document.createElement('div');
+  actions.id = 'verse-actions';
+  actions.className = 'verse-actions';
+  actions.innerHTML = `
+    <button class="verse-action-btn" id="act-copy">📋 복사</button>
+    <button class="verse-action-btn" id="act-highlight">✨ 하이라이트</button>
+    <button class="verse-action-btn" id="act-card">🎨 카드뉴스</button>
+    <button class="verse-action-btn" id="act-share">🔗 공유</button>`;
+  document.body.appendChild(actions);
+  actions.querySelector('#act-copy').addEventListener('click', () => copyVerse(vnum));
+  actions.querySelector('#act-highlight').addEventListener('click', () => toggleHighlight(vnum));
+  actions.querySelector('#act-card').addEventListener('click', () => {
+    hideVerseActions();
+    openCardModal(vnum);
+  });
+  actions.querySelector('#act-share').addEventListener('click', () => shareVerse(vnum));
 
   // 위치 조정
   const w = 320, margin = 10;
