@@ -1581,11 +1581,11 @@ async function generateCardCanvas() {
   const target = document.getElementById('card-capture-target');
   if (!target) return null;
   
-  // html2canvas 옵션: CORS 이미지 허용, 선명도 향상을 위해 scale 2로 설정
+  // 외부 이미지를 제거했으므로 useCORS는 false, 로컬 렌더링 무결성을 위해 allowTaint는 true로 설정
   return html2canvas(target, {
-    useCORS: true,
+    useCORS: false,
     scale: 2,
-    allowTaint: false,
+    allowTaint: true,
     logging: false,
     backgroundColor: null
   });
