@@ -1351,19 +1351,17 @@ document.addEventListener('DOMContentLoaded', init);
 
 // ─── 성경 구절 카드뉴스 제작 프리셋 및 이벤트 핸들러 ────────────────
 const CARD_BG_PRESETS = [
-  // 1. 단색/그라디언트 테마
+  // 1. 세련된 CSS 그라디언트 테마 (CORS 오류 완전 차단 및 로딩 속도 극대화)
   { type: 'gradient', name: 'Twilight', value: 'linear-gradient(135deg, #1f1f3a 0%, #0c001f 100%)' },
   { type: 'gradient', name: 'Sunset Glow', value: 'linear-gradient(135deg, #FF512F 0%, #DD2476 100%)' },
   { type: 'gradient', name: 'Ocean Breeze', value: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)' },
   { type: 'gradient', name: 'Forest Mist', value: 'linear-gradient(135deg, #134E5E 0%, #71B280 100%)' },
-  
-  // 2. 윈도우 / 맥 애플 공식 테마 비주얼 느낌의 이미지 테마 (Unsplash 고화질 CDN 링크)
-  { type: 'image', name: 'Mica Light', value: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=1080&auto=format&fit=crop&q=80' },
-  { type: 'image', name: 'Mica Dark', value: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&auto=format&fit=crop&q=80' },
-  { type: 'image', name: 'Mountain Lake', value: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=80' },
-  { type: 'image', name: 'Deep Forest', value: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1080&auto=format&fit=crop&q=80' },
-  { type: 'image', name: 'Silent Desert', value: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1080&auto=format&fit=crop&q=80' },
-  { type: 'image', name: 'Cosmic Sky', value: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=1080&auto=format&fit=crop&q=80' }
+  { type: 'gradient', name: 'Aurora Teal', value: 'linear-gradient(135deg, #0575E6 0%, #00F260 100%)' },
+  { type: 'gradient', name: 'Sweet Lavender', value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' },
+  { type: 'gradient', name: 'Cosmic Purple', value: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' },
+  { type: 'gradient', name: 'Warm Amber', value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
+  { type: 'gradient', name: 'Mica Light', value: 'linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%)' },
+  { type: 'gradient', name: 'Mica Dark', value: 'linear-gradient(135deg, #434343 0%, #000000 100%)' }
 ];
 
 let cardState = {
@@ -1600,14 +1598,23 @@ async function downloadCardImage() {
     if (!canvas) throw new Error('Canvas 생성 실패');
     
     const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
-    link.download = filename;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('이미지가 성공적으로 저장되었습니다!', 'success');
+    
+    // 모바일 기기(iOS, Android 및 터치 디바이스) 감지
+    const isMobileDevice = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
+    
+    if (isMobileDevice) {
+      showMobileImageOverlay(dataUrl);
+      showToast('이미지가 생성되었습니다. 이미지를 길게 눌러 사진에 저장하세요!', 'success');
+    } else {
+      const link = document.createElement('a');
+      const filename = `bible_card_${cardState.ref.replace(/[\s\(\):]/g, '_')}.png`;
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('이미지가 성공적으로 저장되었습니다!', 'success');
+    }
   } catch (err) {
     console.error(err);
     showToast('이미지 저장 중 오류가 발생했습니다.', 'error');
@@ -1657,4 +1664,45 @@ async function shareCardImage() {
     console.error(err);
     showToast('이미지 처리 중 오류가 발생했습니다.', 'error');
   }
+}
+
+function showMobileImageOverlay(dataUrl) {
+  // 이미 열려있는 오버레이가 있다면 제거
+  document.getElementById('mobile-image-overlay')?.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'mobile-image-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  `;
+  
+  overlay.innerHTML = `
+    <div style="color:#ffffff; font-size:14px; font-weight:600; margin-bottom:15px; text-align:center; line-height:1.5; font-family:sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+      💡 아래 이미지를 <b>길게 눌러서</b><br>"사진 앱에 저장" 또는 "공유"를 선택하세요.
+    </div>
+    <img src="${dataUrl}" style="max-width:100%; max-height:70vh; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:1px solid rgba(255,255,255,0.1); margin-bottom:20px; object-fit:contain;" />
+    <button id="close-mobile-overlay-btn" class="btn btn-primary" style="padding:10px 24px; font-size:14px; background:rgba(255,255,255,0.2); border-color:transparent; color:#ffffff; cursor:pointer;">닫기</button>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  const closeBtn = overlay.querySelector('#close-mobile-overlay-btn');
+  const handler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    overlay.remove();
+  };
+  closeBtn.addEventListener('click', handler);
+  closeBtn.addEventListener('touchend', handler);
 }
