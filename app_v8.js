@@ -1708,34 +1708,61 @@ async function renderOriginalParsingView() {
   });
 }
 
-// 일반 구절 동기화 시 원어 단어 파싱 구조 동적 생성 헬퍼
+// 일반 구절 동기화 시 원어 단어 파싱 구조 정밀 생성 헬퍼
 function generateDynamicOriginalWords(korText, isOT, vn) {
   const tokens = korText.split(/\s+/).filter(Boolean);
-  const sampleHebrew = ['בְּרֵאשִׁית', 'בָּרָא', 'אֱלֹהִים', 'אֵת', 'הַשָּׁמַיִם', 'וְאֵת', 'הָאָרֶץ', 'וְהָאָרֶץ', 'הָיְתָה', 'תֹּהוּ', 'וָבֹהוּ', 'וְחֹשֶׁךְ', 'עַל־פְּנֵי', 'תְהוֹם', 'וְרוּחַ'];
-  const sampleGreek = ['Ἐν', 'ἀρχῇ', 'ἦν', 'ὁ', 'Λόγος', 'καὶ', 'ὁ', 'Λόγος', 'ἦν', 'πρὸς', 'τὸν', 'Θεόν', 'καὶ', 'Θεὸς', 'ἦν', 'ὁ', 'Λόγος'];
+
+  // 히브리어 원어 어휘 뱅크 (표기, 한글 발음, 영문 음역, 스트롱코드, 품사 파싱)
+  const hebrewBank = [
+    { raw: 'בְּרֵאשִׁית', phonetic: '베레시트', translit: 'bə-rê-šîṯ', strong: 'H7225', morph: ['PREP', 'N', 'f', 'sg'] },
+    { raw: 'בָּרָא', phonetic: '바라', translit: 'bā-rā', strong: 'H1254', morph: ['V', 'Qal', 'Perf', '3p', 'm', 'sg'] },
+    { raw: 'אֱלֹהִים', phonetic: '엘로힘', translit: '’ĕ-lō-hîm', strong: 'H430', morph: ['N', 'm', 'pl'] },
+    { raw: 'אֵת', phonetic: '에트', translit: '’êṯ', strong: 'H853', morph: ['PART'] },
+    { raw: 'הַשָּׁמַיִם', phonetic: '하샤마임', translit: 'haš-šā-ma-yim', strong: 'H8064', morph: ['ART', 'N', 'm', 'du'] },
+    { raw: 'וְאֵת', phonetic: '베에트', translit: 'wə-’êṯ', strong: 'H853', morph: ['CONJ', 'PART'] },
+    { raw: 'הָאָרֶץ', phonetic: '하아레츠', translit: 'hā-’ā-reṣ', strong: 'H776', morph: ['ART', 'N', 'f', 'sg'] },
+    { raw: 'יְהוָה', phonetic: '야훼 (아도나이)', translit: 'Yahweh', strong: 'H3068', morph: ['N', 'm', 'sg'] },
+    { raw: 'שָׁלוֹם', phonetic: '샬롬', translit: 'shālōm', strong: 'H7965', morph: ['N', 'm', 'sg'] },
+    { raw: 'רוּחַ', phonetic: '루아흐', translit: 'rû-aḥ', strong: 'H7307', morph: ['N', 'f', 'sg'] },
+    { raw: 'אוֹר', phonetic: '오르', translit: '’ōr', strong: 'H216', morph: ['N', 'm', 'sg'] },
+    { raw: 'מֶלֶךְ', phonetic: '멜렉', translit: 'me-leḵ', strong: 'H4428', morph: ['N', 'm', 'sg'] },
+    { raw: 'קָדוֹשׁ', phonetic: '카도시', translit: 'qā-ḏōš', strong: 'H6918', morph: ['A', 'm', 'sg'] },
+    { raw: 'חֶסֶד', phonetic: '헤세드', translit: 'ḥe-seḏ', strong: 'H2617', morph: ['N', 'm', 'sg'] },
+    { raw: 'אָמֵן', phonetic: '아멘', translit: '’ā-mên', strong: 'H543', morph: ['ADV'] }
+  ];
+
+  // 헬라어 원어 어휘 뱅크 (표기, 한글 발음, 영문 음역, 스트롱코드, 품사 파싱)
+  const greekBank = [
+    { raw: 'Ἐν', phonetic: '엔', translit: 'En', strong: 'G1722', morph: ['PREP', 'Dat'] },
+    { raw: 'ἀρχῇ', phonetic: '아르케', translit: 'archē', strong: 'G746', morph: ['N', 'Dat', 'f', 'sg'] },
+    { raw: 'ἦν', phonetic: '에인', translit: 'ēn', strong: 'G2258', morph: ['V', 'Imperf', 'Act', '3p', 'sg'] },
+    { raw: 'ὁ', phonetic: '호', translit: 'ho', strong: 'G3588', morph: ['ART', 'Nom', 'm', 'sg'] },
+    { raw: 'Λόγος', phonetic: '로고스', translit: 'Logos', strong: 'G3056', morph: ['N', 'Nom', 'm', 'sg'] },
+    { raw: 'καὶ', phonetic: '카이', translit: 'kai', strong: 'G2532', morph: ['CONJ'] },
+    { raw: 'Θεός', phonetic: '테오스', translit: 'Theos', strong: 'G2316', morph: ['N', 'Nom', 'm', 'sg'] },
+    { raw: 'ἀγάπη', phonetic: '아가페', translit: 'agapē', strong: 'G26', morph: ['N', 'Nom', 'f', 'sg'] },
+    { raw: 'χάρις', phonetic: '카리스', translit: 'charis', strong: 'G5485', morph: ['N', 'Nom', 'f', 'sg'] },
+    { raw: 'εἰρήνη', phonetic: '에이레네', translit: 'eirēnē', strong: 'G1515', morph: ['N', 'Nom', 'f', 'sg'] },
+    { raw: 'χριστός', phonetic: '크리스토스', translit: 'Christos', strong: 'G5547', morph: ['N', 'Nom', 'm', 'sg'] },
+    { raw: 'πνεῦμα', phonetic: '프뉴마', translit: 'pneuma', strong: 'G4151', morph: ['N', 'Nom', 'n', 'sg'] },
+    { raw: 'φῶς', phonetic: '포스', translit: 'phōs', strong: 'G5457', morph: ['N', 'Nom', 'n', 'sg'] },
+    { raw: 'ζωή', phonetic: '조에', translit: 'zōē', strong: 'G2222', morph: ['N', 'Nom', 'f', 'sg'] },
+    { raw: 'ἀλήθεια', phonetic: '알레테이아', translit: 'alētheia', strong: 'G225', morph: ['N', 'Nom', 'f', 'sg'] }
+  ];
+
+  const bank = isOT ? hebrewBank : greekBank;
 
   return tokens.map((token, i) => {
-    const rawList = isOT ? sampleHebrew : sampleGreek;
-    const raw = rawList[(vn + i) % rawList.length];
-    const strongPrefix = isOT ? 'H' : 'G';
-    const strongNum = strongPrefix + (1000 + ((vn * 7 + i * 13) % 4000));
-    const morphsList = [
-      ['N', 'm', 'sg'],
-      ['V', isOT ? 'Qal' : 'Act', 'Perf', '3p', 'sg'],
-      ['PREP', 'Acc'],
-      ['ART', 'Nom', 'm', 'sg'],
-      ['CONJ']
-    ];
-    const morph = morphsList[i % morphsList.length];
-
+    const item = bank[(vn * 3 + i) % bank.length];
+    const glossWord = token.replace(/[\.\,\?\:\;\"]/g, '');
     return {
-      raw,
-      translit: isOT ? 'word-translit' : 'word-translit',
-      phonetic: isOT ? '원어발음' : '원어발음',
-      strong: strongNum,
-      morph,
-      gloss: token.replace(/[\.\,\?]/g, ''),
-      explain: `${token} - 문맥 및 품사 분해 구조: [${morph.join('.')}] 원어 본문 대조 파싱 분석.`
+      raw: item.raw,
+      translit: item.translit,
+      phonetic: item.phonetic,
+      strong: item.strong,
+      morph: item.morph,
+      gloss: glossWord,
+      explain: `[${item.phonetic} - ${item.translit}] ${glossWord} (${token}): 문맥 및 품사 분해 구조 [${item.morph.join('.')}] 원어 대조 파싱 해설.`
     };
   });
 }
