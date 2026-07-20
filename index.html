@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="style_v6.css" />
+  <link rel="stylesheet" href="style_v7.css" />
 </head>
 <body>
 <div class="bg-orbs">
@@ -45,6 +45,7 @@
 
     <!-- 오른쪽 컨트롤 -->
     <div class="header-controls">
+      <button class="mode-toggle-btn" id="original-mode-toggle" title="원어 성경 파싱 모드">🏛️ 원어 파싱</button>
       <button class="icon-btn" id="go-today" title="오늘 본문">📅</button>
       <div class="font-size-control">
         <button id="font-smaller" title="글씨 줄이기">A⁻</button>
@@ -337,11 +338,22 @@
       <button class="btn btn-primary" id="card-share-btn">📤 공유하기</button>
       <button class="btn btn-primary" id="card-download-btn" style="background:#10B981;border-color:#10B981;">💾 이미지 저장</button>
     </div>
+<!-- ─── 원어 단어 파싱 상세 모달 ─── -->
+<div class="modal-overlay" id="original-word-modal">
+  <div class="modal original-word-modal-container">
+    <div class="modal-header">
+      <div class="modal-title" id="word-modal-title">🏛️ 원어 문법 분해 & 사전</div>
+      <button class="modal-close" id="word-modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="word-modal-body">
+      <!-- 동적 파싱 인스펙터 내용 -->
+    </div>
   </div>
 </div>
 
+<script src="js/original_language_data.js"></script>
 <script src="html2canvas.min.js"></script>
-<script src="app_v6.js"></script>
+<script src="app_v7.js"></script>
 <script>
 // ─── 모바일 드로어 / 하단 네비 로직 ───────────────────────
 
